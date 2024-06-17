@@ -1,0 +1,4 @@
+llama-index==0.10.35
+python-dotenv
+transformers
+tiktoken

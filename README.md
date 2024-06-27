@@ -9,6 +9,8 @@
 conda create -n llm-ui python=3.10
 conda activate llm-ui
 pip install -r requirements.txt
+
+solara run page.py
 ```
 
 

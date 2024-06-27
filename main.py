@@ -1,47 +1,22 @@
 
-#%% []
-from llama_index.core.node_parser import (
-    SentenceSplitter,
-    SemanticSplitterNodeParser,
-)
-from llama_index.embeddings.openai import OpenAIEmbedding
 
-from dotenv import load_dotenv
-load_dotenv()
-#%% []
+from huggingface_hub import login
+import solara
+from transformers import AutoTokenizer
+from transformers import PretrainedConfig
+import reacton.ipyvuetify as v
+import tiktoken
+from prod_pages.token_counter import TokenCounter
 
-from llama_index.core import SimpleDirectoryReader
-
-# load documents
-documents = SimpleDirectoryReader(input_dir='./knowledge_base').load_data()
-
-# also baseline splitter
-base_splitter = SentenceSplitter(chunk_size=512)
-
-nodes = base_splitter.get_nodes_from_documents(documents)
+# reactive variables will trigger a component rerender
+# when changed.
+# When you change the default (now 0), hit the embedded browser
+# refresh button to reset the state
 
 
-#%% []
-print(nodes[1].get_content())
 
-# %%
-nodes[1].dict()
-# %%
-nodes[2].dict()
-
-# %%
-nodes[20].dict()
-
-# %%
-nodes[21].dict()
-
-# %%
-nodes[22].dict()
-
-# %%
-nodes[58].dict()
-
-# %%
-nodes[57].dict()
-
-# %%
+    
+routes = [
+    solara.Route(path="/", component=TokenCounter, label="home"),
+    # solara.Route(path="about", component=About, label="about"),
+]

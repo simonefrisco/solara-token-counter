@@ -18,8 +18,8 @@ def get_available_models():
     return list(config_mappings.keys())
     
 @solara.component
-def TokenCounter():
-    print('hit TokenCounter() component')
+def ChunkViewer():
+    print('hit ChunkViewer() component')
     custom_text, set_custom_text = solara.use_state("Change this text ...")
     def hf_login():
         login(hf_token.value)

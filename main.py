@@ -7,6 +7,7 @@ from transformers import PretrainedConfig
 import reacton.ipyvuetify as v
 import tiktoken
 from prod_pages.token_counter import TokenCounter
+from prod_pages.chunk_viewer import TokenCounter
 
 # reactive variables will trigger a component rerender
 # when changed.
@@ -17,6 +18,6 @@ from prod_pages.token_counter import TokenCounter
 
     
 routes = [
-    solara.Route(path="/", component=TokenCounter, label="home"),
-    # solara.Route(path="about", component=About, label="about"),
+    solara.Route(path="/", component=TokenCounter, label="Token Counter"),
+    solara.Route(path="about", component=ChunkViewer, label="Chunk Viewer"),
 ]

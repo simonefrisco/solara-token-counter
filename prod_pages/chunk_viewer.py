@@ -1,71 +1,56 @@
 
 from huggingface_hub import login
 import solara
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, PretrainedConfig
 import reacton.ipyvuetify as v
 import tiktoken
 from .sidebar import CustomSidebar
+# from llama_index import SimpleTextSplitter, ParagraphSplitter
+
+from langchain_text_splitters  import CharacterTextSplitter, RecursiveCharacterTextSplitter,TokenTextSplitter
 
 llms = [
     "gpt-3.5-turbo",
 ]
 current_llm  = solara.reactive(llms[0])
-hf_token     = solara.reactive(''     )
-use_hf_model = solara.reactive(False  )
 
-def get_available_models():
-    config_mappings = PretrainedConfig.pretrained_config_archive_map
-    return list(config_mappings.keys())
-    
+chunk_splitters = {
+    "CharacterTextSplitter": CharacterTextSplitter,
+    "RecursiveCharacterTextSplitter": RecursiveCharacterTextSplitter,
+    "TokenTextSplitter": TokenTextSplitter,
+}
+
+input_text = solara.reactive("")
+chunk_size = solara.reactive(1000)
+chunk_overlap = solara.reactive(100)
+selected_splitter = solara.reactive("CharacterTextSplitter")
+output_chunks = solara.reactive([])
+
 @solara.component
 def ChunkViewer():
-    print('hit ChunkViewer() component')
-    custom_text, set_custom_text = solara.use_state("Change this text ...")
-    def hf_login():
-        login(hf_token.value)
 
-    def count_hf_token(text, model):
-        tokenizer = AutoTokenizer.from_pretrained(model)
-        tokens = tokenizer.tokenize(text)
-        return tokens, len(tokens)
-    
-    def count_openai_token(text, model):
-        encoding = tiktoken.encoding_for_model(model)
-        tokens = encoding.encode(text)
-        return tokens, len(tokens)
-    
-    CustomSidebar()
-    
+
+    def process_text():
+        splitter_class = chunk_splitters[selected_splitter.value]
+        splitter = splitter_class(chunk_size=chunk_size.value, chunk_overlap=chunk_overlap.value)  # Example parameter
+        output_chunks.value = splitter.create_documents([input_text.value])
+
+
     with solara.Columns([3,3]):
+        with solara.Column(style={'width':'100%'}):
+
+            solara.Markdown("## Chunk Splitter Test")
+            solara.InputText("Input Text", value=input_text)
+            solara.InputText("Chunk Size", value=chunk_size)
+            solara.InputText("Chunk Overlap", value=chunk_overlap)
+            solara.Select("Select Chunk Type", values=list(chunk_splitters.keys()), value=selected_splitter)
+            solara.Button("Process", on_click=process_text)
 
         with solara.Column(style={'width':'100%'}):
-            with solara.Card():
-                solara.Markdown("""
-                                # Token Counter
-                                ### Usage:
-                                Select LLM to use and paste any text in the following textbox : 
-                            """)
-                solara.Select(label="Food", value=current_llm, values=llms)
-
-            with solara.Card(style={'overflow-y':'scroll','position':'relative','min-height':'250px'}):
-                # with v.Card(height=500, max_height=600 ) :
-                    with v.CardText():
-                        solara.MarkdownEditor(value=custom_text, on_value=set_custom_text)
-
-        with solara.Column(style={'width':'800px'}):
-            solara.Markdown(f"""
-                                ## Model :  
-                                **{current_llm}**
-                            
-                            """)
-            # model_list = get_available_models()
-            # solara.Markdown(f'## Token counter for {model_list}')
-            current_tokens, current_num_tokens = count_openai_token(custom_text, model = current_llm.value)
-
-            solara.Markdown(f"""
-                                ### Tokens: 
-                                {current_tokens}
-
-                                ### Number of tokens: 
-                                {current_num_tokens}
-                            """) 
+            if output_chunks.value:
+                solara.Markdown("## Output Chunks")
+                for chunk in output_chunks.value:
+                    with solara.Card():
+                        solara.Text(chunk.page_content)
+                        with solara.CardActions():
+                            solara.Text(str(chunk.metadata))

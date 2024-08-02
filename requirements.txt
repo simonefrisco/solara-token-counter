@@ -3,3 +3,4 @@ python-dotenv
 transformers
 tiktoken
 solara
+langchain
